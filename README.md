@@ -14,4 +14,4 @@ This script is the intellectual property of **Shailesh Patil**. Any unauthorized
 - **Name:** Shailesh Patil
 
 ---
-Copyright © 2024 Shailesh Patil. All Rights Reserved. 
+Copyright © 2025 Shailesh Patil. All Rights Reserved. 
