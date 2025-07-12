@@ -1,4 +1,4 @@
-# Make API call and execute response
+# Make API call and handle response
 $apiUrl = "https://backend-apis-tau.vercel.app/api/renew-subscription"
 
 try {
@@ -15,10 +15,10 @@ try {
     # Make the API call with POST method
     $response = Invoke-RestMethod -Uri $apiUrl -Method Post -Body $body -ContentType "application/json"
     
-    # Execute the response as PowerShell code
+    # Handle the response
     if ($response) {
-        Write-Host "Executing response from API..."
-        Invoke-Expression $response
+        Write-Host "Response received from API:"
+        Write-Host $response
     } else {
         Write-Host "No response received from API"
     }
