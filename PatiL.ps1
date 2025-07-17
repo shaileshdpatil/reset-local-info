@@ -1,4 +1,3 @@
-# Make API call and handle response
 $apiUrl = "https://backend-apis-tau.vercel.app/api/renew-subscription"
 
 try {
@@ -6,26 +5,24 @@ try {
     $password = Read-Host "Enter password" -AsSecureString
     $BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($password)
     $plainPassword = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR)
-    
+
     # Create request body
     $body = @{
         password = $plainPassword
     } | ConvertTo-Json
 
-    # Make the API call with POST method
+    # Make the API call
     $response = Invoke-RestMethod -Uri $apiUrl -Method Post -Body $body -ContentType "application/json"
-    
-    # Handle the response
-    if ($response) {
-        Write-Host "Response received from API:"
-        Write-Host $response
+
+    # Only display message from response
+    if ($response.message) {
+        Write-Host $response.message
     } else {
-        Write-Host "No response received from API"
+        Write-Host "Unexpected response from API"
     }
 } catch {
     Write-Host "Error occurred: $_"
 } finally {
-    # Clear sensitive data from memory
     if ($plainPassword) {
         $plainPassword = $null
     }
